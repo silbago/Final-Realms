@@ -72,9 +72,9 @@
  *
  *
  * Development
- * query who is on channel, more general function(s)
- * turn channel on remote, free access, no input back to avoid sneaking
- * on who can hear what. CTF needs it, other things too .... ?
+ *   query who is on channel, more general function(s)
+ *   turn channel on remote, free access, no input back to avoid sneaking
+ *   on who can hear what. CTF needs it, other things too .... ?
  * @author Silbago
  */
 
@@ -85,7 +85,7 @@
 #include <network.h>
 #include <cmds.h>
 
-#define SAVE_FILE "/" + mud_name() + "/save/channels"
+#define SAVE_FILE "/" + mud_name() + "/save/Handler/channels"
 
 /**
  * A list of smileys, just to not make emote chat hickup.
@@ -109,6 +109,7 @@
     "race"  : "query_race_group", \
 ])
 
+/** @ignore start */
 mapping save_channels;
 private nosave mapping channel_aliases,
                        terminal,
@@ -117,7 +118,7 @@ private nosave string channel_name,
                       channel_alias,
                       *multiple_aliases;
 private nosave object shouter_object;
-/** @ignore start */
+
 private nosave class channel channel_data;
 
 class channel query_channel_data(string chan) {
@@ -125,11 +126,12 @@ class channel query_channel_data(string chan) {
         return 0;
     return copy(channels[chan]);
 }
-/** @ignore end */
 nomask int query_access(string name, object me);
+/** @ignore end */
 
-mapping query_channels() { return copy(channels); }
-string *query_channel_names() { return keys(channels); }
+
+mapping query_channels       () { return copy(channels);        }
+string *query_channel_names  () { return keys(channels);        }
 mapping query_channel_aliases() { return copy(channel_aliases); }
 
 private void load_me() {
@@ -288,7 +290,7 @@ void create() {
     mixed bing;
     string group;
 
-    seteuid("Root");
+    seteuid("Handler");
     channels = ([]);
     channel_aliases = ([]);
     multiple_aliases = ({ });
