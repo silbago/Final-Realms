@@ -1,0 +1,137 @@
+Vault code was originally done by Radix, Thane of Hoerk
+
+A bit of a guide how to use these things, is documented in each .c file though
+
+File structure requirements
+    You should have the vaultrooms in a seperate directory, it would be unwise not to.
+    For example make directory warehouse/
+    Inside that dir create dir logs/
+
+    You must have a file named warehouse.c that inherits - warehouse.c
+    Then create vaultrooms that inherit room.c, good luck.
+
+Ownership
+   This is done in warehouse.c
+   You MUST set_group("<usergroup>") that owns the warehouse
+
+How to keep items in specific vault
+    the set_label() is the key to tag items. The label things are deposited with is
+    accessible from ANY vault with same label(s).
+    For example if you set_label("weapons"); in several rooms, all rooms with that
+    same label can access it.
+
+Access restrictions
+   It defaults as access for everyone, if you want all vaultrooms restricted, do
+   this in your warehouse.c file: set_access_level(MEMBER_ACCESS_LEVEL);
+
+   If you want different acces level in a single vaultroom, do this in that room:
+       set_access_level(GUEST_ACCESS_LEVEL);
+
+   For those files where you do these alterations, you need to #include <council.h>
+
+
+TODO    Jan 12th 2010
+   Far below here there is a long todolist, some of it is done but Im lazy right now.
+   Create customizeable descriptions to replace scalp vaults and godknows what.
+   Keep eye on the new vaults to see if they are stable.
+
+   Install simul efuns for Morth's add_cmd() and have advanced command handling.
+
+   Access restrictions to Player owner flag 1 & 2, mastervault override etc.
+
+
+
+
+
+
+------------------------------------------------------
+Below here is readable but some is outdated
+Silbago 2007: Vault code cleanup
+Silbago 2008: Vault code cleanup
+Silbago 2009: Wrote new vaultcode from scratch, copied a lot from old code.
+
+If you wish to use it, read the comments in vault.c, room.i and warehouse.c
+    Follow the instructions and you will do just fine.
+It would be wise to have a seperate subdir for your vaultfiles.
+
+In YOUR vault room, use these functions for various reasons:
+    add_label("unique word");
+    set_owner("usergroup that owns it");
+
+In YOUR warehouse, use this function for obvious reason:
+    set_max_items(500); ---> Ask Thane of Aprior
+
+Silbago, October 22 2009
+
+Here's how the vault system works, forget everything you think you know.
+  1) Maximum capacity of items stored is payed for, not amount of vaults.
+     [This you set in the warehouse]
+  2) There is only one warehouse per GROUP, there can be only one.
+     [There are no vaults]
+ 3) The warehouse can have several room rooms.
+     [These are commonly known as vaults]
+  4) Each room has a set of labels.
+     [Items deposited are marked with these labels]
+  5) The rooms can access items with similar labels.
+     [You CAN have the same labels in multiple rooms if you want]
+  6) You can have a master vault, that has access to all labels.
+     [Nice to have for auditing and control]
+  7) A warehouse can be owned by a usergroup, guests can retrieve.
+     [If you want a wide open, use the domain usergroup]
+
+TODO list on new development, October 2009
+    The system is in BETA soon MAJOR, not ready for release.
+
+    6 not important, 5 needs to be implemented crude version. 3A needs to be done.
+    1C should be tested soon. 2C if it doesnt grow ugly code.
+    3 chapter as a whole needs to use Morth's command parser, solves all the problems.
+    3A a bit annoying as singular becomes multiple, make match naming.
+    3C needs to be properly intelligent.
+
+    1) Shelves
+      A) Check that shelves are not destructed by cleaner.
+         ---> Seems secure.
+      B) Check that items in the shelves are not destructed by the cleaner.
+         ---> Seems secure.
+      C) Test how many items a shelf can have before it crashes.
+         [50 default, works fine. Test it]
+      D) Each shelf representing a label ? Is this doable ?
+         ---> Attempting to save memory shelf savefile. Maybe not doable
+
+    2) Warehouse
+      A) Shelf extension, check that it doesnt go haywire, and that it works.
+         ---> Works fine.
+      B) 10 minutes idle warehouse, destroy the shelf objects.
+         ---> Works fine.
+      C) Depositing to be even distributed among the shelves.
+         ---> Do we care ?
+
+    3) Frontdesk
+      A) List command, play with it. Enhance id() with strsrch.
+      B) Include mastervault.
+         ---> Done
+      C) Stress test retrieve, fix messaging.
+      D) Browse command, copy from old code.
+         ---> Done
+      E) Get the nice sign online.
+         ---> Done
+
+    4) Restrictions are bound in the Warehouse
+      A) Get code from old vault code and see what it does.
+         ---> Works fine.
+
+    5) Warehouse logging, for later
+      A) Create dump logging for retrieve and deposit.
+      B) Develop smart logging for short term item retrieval.
+      C) Make two commands to read this junk.
+         ---> Finished
+
+    6) Objects on shelves, not loaded as objects, for Volothamp
+      A) Create a query-able standard that works with id()
+      B) Make it work with list cache in room.
+
+    7) Cross check old and new property usage to clean memory
+       #define DEPOSIT_TEMP "std:deposited_swap"
+       #define DEPOSIT_PROP "std:deposited_name"
+       #define DEPOSIT_TAG  "std:deposited_tag"
+       #define DEPOSIT_ID   "std:deposited_id"
