@@ -1,0 +1,41 @@
+Silbago September 2011: Writing about directory structure here.
+
+Here we have the basic commands for the mud, not slice, berserk or those
+fighting commands. Though we have 'kill' here. Most importantly we have
+the immortal administration commands. Within we also have security and
+access privileges to these commands. Determined by directory name, simply.
+
+Here' goes the standard directories:
+  - handler/         Contains shared objects.
+  - onetime/         Specialized interactive commands.
+
+Commands reside in sub directories named after usergroups, you can nest
+with several usergroups using letter + as seperator. A directory not
+containing name of a usergroup is not home for commands.
+You can abuse this any way you like, check below for tricks.
+Please note that the letter + is illegal in usergroup namespace.
+
+Exceptions:
+  - everyone/        No security, anything can use these commands.
+  - players/         We allow immortals to use these commands.
+
+Examples:
+   - creators/       Any member of this usergroup can use command.
+   - demis/          As with 'creators', commands for demigods ONLY.
+
+For multiple usergroups, by _ underscore seperation:
+   - demis+gods/     Member of any of these two usergroups.
+   - gods+demis/     Silly trick to make same as above but new dir.
+   - demis+gods+/    Silly trick to have a double set, but works.
+   - +++demis+BAH/   BAH not a usergroup obviously, works for demis
+
+--------------------------------------------------------------------------
+Legacy directories (will be phased out):
+  - alchemist/       For 'lords'
+  - builder/         For 'creators'
+  - demi/            For 'lords'
+  - god/             For 'lords'
+  - living/          For anyone and anything
+  - mortal/          For interactive's
+  - patron/          For 'patrons'
+  - thane/           For 'masters'
