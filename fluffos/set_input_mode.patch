@@ -1,0 +1,188 @@
+diff -crB /home/mud/drivers/fluffos/fluffos-2.22//comm.c ./comm.c
+*** /home/mud/drivers/fluffos/fluffos-2.22//comm.c	Mon Feb 14 22:10:02 2011
+--- ./comm.c	Tue Apr 12 23:24:26 2011
+***************
+*** 2098,2103 ****
+--- 2098,2104 ----
+      debug(connections, ("get_user_command: user_command = (%s)\n", user_command));
+      save_command_giver(ip->ob);
+  
++ #ifndef F_SET_INPUT_MODE
+  #ifndef GET_CHAR_IS_BUFFERED
+      if (ip->iflags & NOECHO) {
+  #else
+***************
+*** 2107,2113 ****
+          add_binary_message(command_giver, telnet_no_echo, sizeof(telnet_no_echo));
+          ip->iflags &= ~NOECHO;
+      }
+! 
+      ip->last_time = current_time;
+      return user_command;
+  }                               /* get_user_command() */
+--- 2108,2114 ----
+          add_binary_message(command_giver, telnet_no_echo, sizeof(telnet_no_echo));
+          ip->iflags &= ~NOECHO;
+      }
+! #endif
+      ip->last_time = current_time;
+      return user_command;
+  }                               /* get_user_command() */
+***************
+*** 2578,2583 ****
+--- 2579,2614 ----
+  }                               /* set_call() */
+  #endif
+  
++ #ifdef F_SET_INPUT_MODE
++ int set_input_mode (object_t * ob, int flags)
++ {
++   int oflags;
++ 
++   if (!ob || !ob->interactive)
++     return 0;
++ 
++   oflags = ob->interactive->iflags & (I_NOECHO | I_SINGLE_CHAR);
++   ob->interactive->iflags &= ~(I_NOECHO | I_SINGLE_CHAR);
++   ob->interactive->iflags |= flags & (I_NOECHO | I_SINGLE_CHAR);
++   if (flags & ~oflags & I_NOECHO)
++     add_binary_message (ob, telnet_yes_echo, sizeof (telnet_yes_echo));
++   else if (oflags & ~flags & I_NOECHO)
++     add_binary_message (ob, telnet_no_echo, sizeof (telnet_no_echo));
++   if (flags & ~oflags & I_SINGLE_CHAR)
++     set_charmode (ob->interactive);
++   else if (oflags & ~flags & I_SINGLE_CHAR)
++   {
++     ob->interactive->text_start = ob->interactive->text_end = 0;
++     ob->interactive->text[0] = '\0';
++     ob->interactive->iflags &= ~CMD_IN_BUF;
++     set_linemode (ob->interactive);
++   }
++   return 1;
++ }
++ #endif
++ 
++ 
++ 
+  void set_prompt (const char * str)
+  {
+      if (command_giver && command_giver->interactive) {
+diff -crB /home/mud/drivers/fluffos/fluffos-2.22//efuns_main.c ./efuns_main.c
+*** /home/mud/drivers/fluffos/fluffos-2.22//efuns_main.c	Mon Feb 14 22:10:03 2011
+--- ./efuns_main.c	Tue Apr 12 23:20:53 2011
+***************
+*** 2939,2944 ****
+--- 2939,2953 ----
+  }
+  #endif
+  
++ #ifdef F_SET_INPUT_MODE
++ void
++ f_set_input_mode (void)
++ {
++   sp->u.number = set_input_mode (current_object, sp->u.number);
++ }
++ #endif
++ 
++ 
+  #ifdef F_SET_LIGHT
+  void
+  f_set_light (void)
+diff -crB /home/mud/drivers/fluffos/fluffos-2.22//func_spec.c ./func_spec.c
+*** /home/mud/drivers/fluffos/fluffos-2.22//func_spec.c	Mon Feb 14 22:10:04 2011
+--- ./func_spec.c	Tue Apr 12 23:27:18 2011
+***************
+*** 80,86 ****
+--- 80,94 ----
+  void call_out(string | function, int,...);
+  #endif
+  int member_array(mixed, string | mixed *, void | int, void | int);
++ 
++ #ifdef SET_INPUT_MODE
++ int set_input_mode (int);
++ #else
+  int input_to(string | function,...);
++ int get_char(string | function,...);
++ int in_input(object default:F__THIS_OBJECT);
++ #endif
++ 
+  int random(int);
+  
+  #ifndef NO_ENVIRONMENT
+***************
+*** 286,292 ****
+      int has_gmcp(object default:F__THIS_OBJECT);
+      void send_gmcp(string);
+      string in_edit(object default:F__THIS_OBJECT);
+-     int in_input(object default:F__THIS_OBJECT);
+      int userp(object);
+  #ifdef COMPAT_32
+      int query_once_interactive userp(object);
+--- 294,299 ----
+***************
+*** 312,318 ****
+      void set_privs(object, int | string);
+  #endif                          /* PRIVS */
+  
+-     int get_char(string | function,...);
+      object *children(string);
+  
+      void reload_object(object);
+--- 319,324 ----
+diff -crB /home/mud/drivers/fluffos/fluffos-2.22//packages/contrib.c ./packages/contrib.c
+*** /home/mud/drivers/fluffos/fluffos-2.22//packages/contrib.c	Tue Jan 11 23:31:26 2011
+--- ./packages/contrib.c	Tue Apr 12 23:38:22 2011
+***************
+*** 2789,2795 ****
+  }
+  #endif
+  #endif
+! #ifdef F_REMOVE_GET_CHAR
+  static int remove_get_char (object_t * ob){
+  	int ret;
+  	if (!ob || ob->interactive == 0){
+--- 2791,2799 ----
+  }
+  #endif
+  #endif
+! 
+! #ifndef F_SET_INPUT_MODE
+! # ifdef F_REMOVE_GET_CHAR
+  static int remove_get_char (object_t * ob){
+  	int ret;
+  	if (!ob || ob->interactive == 0){
+***************
+*** 2824,2831 ****
+  	}
+  	put_number(tmp);
+  }
+! 
+  #endif
+  #ifdef F_SEND_NULLBYTE
+  void f_send_nullbyte (void){
+  	int tmp;
+--- 2828,2836 ----
+  	}
+  	put_number(tmp);
+  }
+! # endif
+  #endif
++ 
+  #ifdef F_SEND_NULLBYTE
+  void f_send_nullbyte (void){
+  	int tmp;
+diff -crB /home/mud/drivers/fluffos/fluffos-2.22//packages/contrib_spec.c ./packages/contrib_spec.c
+*** /home/mud/drivers/fluffos/fluffos-2.22//packages/contrib_spec.c	Tue Jan 11 23:31:26 2011
+--- ./packages/contrib_spec.c	Tue Apr 12 23:56:41 2011
+***************
+*** 56,62 ****
+--- 56,64 ----
+  int string_difference( string, string );
+  int query_charmode(object);
+  int remove_charmode(object);
++ #ifndef SET_INPUT_MODE
+  int remove_get_char(object);
++ #endif
+  int send_nullbyte(object);
+  void restore_from_string(string, int default:0);
+  mixed *classes( object, int default : 0 );
