@@ -1,0 +1,11 @@
+Source changes to FluffOS to make Final Realms Mudlib tick.
+Dealings with input_mode() for flexible charmode handling.
+
+Trying to resolve (with brute force) problems FR has with ed.c
+We run with NEW_ED compiled, and have consistent mudcrasher.
+Not sure what is wrong with the compilation, but my hacks
+made ed not crash FR and Im (for the time being) happy.
+
+In addition the local_options file for FR
+
+Silbago
